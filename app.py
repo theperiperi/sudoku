@@ -57,6 +57,18 @@ def generate_sudoku():
     
     return board
 
+def is_valid_solution(board):
+    for i in range(9):
+        for j in range(9):
+            num = board[i][j]
+            if num == 0:
+                return False
+            board[i][j] = 0
+            if not is_valid(board, i, j, num):
+                return False
+            board[i][j] = num
+    return True
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -72,6 +84,13 @@ def api_solve():
     sudoku_board = data['board']
     solve_sudoku(sudoku_board)
     return jsonify({'solution': sudoku_board})
+
+@app.route('/api/check', methods=['POST'])
+def api_check():
+    data = request.json
+    sudoku_board = data['board']
+    valid = is_valid_solution(sudoku_board)
+    return jsonify({'valid': valid})
 
 if __name__ == '__main__':
     app.run(debug=True)

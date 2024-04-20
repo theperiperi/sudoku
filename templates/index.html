@@ -13,6 +13,7 @@
     </table>
     <button id="generateButton">Generate Sudoku</button>
     <button id="solveButton">Solve Sudoku</button>
+    <button id="checkButton">Check Solution</button>
 
     <script>
         document.getElementById("generateButton").addEventListener("click", function() {
@@ -25,7 +26,14 @@
                     const row = document.createElement("tr");
                     for (let j = 0; j < 9; j++) {
                         const cell = document.createElement("td");
-                        cell.textContent = data[i][j] === 0 ? '' : data[i][j];
+                        const input = document.createElement("input");
+                        input.setAttribute("type", "text");
+                        input.setAttribute("maxlength", "1");
+                        if (data[i][j] !== 0) {
+                            input.value = data[i][j];
+                            input.setAttribute("readonly", "readonly");
+                        }
+                        cell.appendChild(input);
                         row.appendChild(cell);
                     }
                     sudokuBoard.appendChild(row);
@@ -39,7 +47,7 @@
             for (let i = 0; i < 9; i++) {
                 const row = [];
                 for (let j = 0; j < 9; j++) {
-                    const cellValue = sudokuBoard.rows[i].cells[j].textContent.trim();
+                    const cellValue = sudokuBoard.rows[i].cells[j].querySelector("input").value.trim();
                     row.push(cellValue === '' ? 0 : parseInt(cellValue));
                 }
                 board.push(row);
@@ -56,8 +64,37 @@
             .then(data => {
                 for (let i = 0; i < 9; i++) {
                     for (let j = 0; j < 9; j++) {
-                        sudokuBoard.rows[i].cells[j].textContent = data.solution[i][j];
+                        sudokuBoard.rows[i].cells[j].querySelector("input").value = data.solution[i][j];
                     }
+                }
+            });
+        });
+
+        document.getElementById("checkButton").addEventListener("click", function() {
+            const sudokuBoard = document.getElementById("sudokuBoard");
+            const board = [];
+            for (let i = 0; i < 9; i++) {
+                const row = [];
+                for (let j = 0; j < 9; j++) {
+                    const cellValue = sudokuBoard.rows[i].cells[j].querySelector("input").value.trim();
+                    row.push(cellValue === '' ? 0 : parseInt(cellValue));
+                }
+                board.push(row);
+            }
+
+            fetch('/api/check', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ board: board })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.valid) {
+                    alert("Congratulations! Your solution is correct.");
+                } else {
+                    alert("Sorry, your solution is incorrect.");
                 }
             });
         });
