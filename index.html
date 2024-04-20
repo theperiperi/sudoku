@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sudoku Solver</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Sudoku Solver</h1>
+    <table id="sudokuBoard">
+        <!-- Cells will be generated here -->
+    </table>
+    <button id="generateButton">Generate Sudoku</button>
+    <button id="solveButton">Solve Sudoku</button>
+
+    <script>
+        document.getElementById("generateButton").addEventListener("click", function() {
+            fetch('/api/generate')
+            .then(response => response.json())
+            .then(data => {
+                const sudokuBoard = document.getElementById("sudokuBoard");
+                sudokuBoard.innerHTML = "";
+                for (let i = 0; i < 9; i++) {
+                    const row = document.createElement("tr");
+                    for (let j = 0; j < 9; j++) {
+                        const cell = document.createElement("td");
+                        cell.textContent = data[i][j] === 0 ? '' : data[i][j];
+                        row.appendChild(cell);
+                    }
+                    sudokuBoard.appendChild(row);
+                }
+            });
+        });
+
+        document.getElementById("solveButton").addEventListener("click", function() {
+            const sudokuBoard = document.getElementById("sudokuBoard");
+            const board = [];
+            for (let i = 0; i < 9; i++) {
+                const row = [];
+                for (let j = 0; j < 9; j++) {
+                    const cellValue = sudokuBoard.rows[i].cells[j].textContent.trim();
+                    row.push(cellValue === '' ? 0 : parseInt(cellValue));
+                }
+                board.push(row);
+            }
+
+            fetch('/api/solve', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ board: board })
+            })
+            .then(response => response.json())
+            .then(data => {
+                for (let i = 0; i < 9; i++) {
+                    for (let j = 0; j < 9; j++) {
+                        sudokuBoard.rows[i].cells[j].textContent = data.solution[i][j];
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
